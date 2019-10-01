@@ -146,7 +146,7 @@ SELECT
 	SI.InvoiceID,
 	SC.CustomerID,
 	SC.CustomerName,
-	SUM(SIL.ExtendedPrice) OVER(PARTITION BY SIL.InvoiceID) AS [InvoiceTotal]
+	SUM(TempTable.InvoiceID) OVER(PARTITION BY SIL.InvoiceID) AS [InvoiceTotal]
 FROM
 	Sales.Invoices AS SI
 	LEFT JOIN Sales.InvoiceLines AS SIL ON SI.InvoiceID = SIL.InvoiceID
@@ -154,11 +154,39 @@ FROM
 	LEFT JOIN
 		( 
 			SELECT
-				*
+				I.InvoiceID,
+				IL.ExtendedPrice
 			FROM
 				Sales.Invoices AS I
 				LEFT JOIN Sales.InvoiceLines AS IL ON I.InvoiceID = IL.InvoiceID
 				LEFT JOIN Sales.Customers AS C ON I.CustomerID = C.CustomerID
-		) AS [TempTable] ON 
+		) AS [TempTable] ON  SI.InvoiceID = TempTable.InvoiceID
 WHERE
 	SC.CustomerID IN (525, 831)
+
+-- Another Attempt:
+SELECT
+	TOP 1 *
+FROM
+	(
+		SELECT TOP 2 *
+		FROM Sales.InvoiceLines AS IL
+		ORDER BY IL.ExtendedPrice DESC
+	) AS T
+ORDER BY
+	T.ExtendedPrice ASC
+
+-- Part
+SELECT * FROM Sales.InvoiceLines AS IL ORDER BY IL.ExtendedPrice DESC
+
+-- Part
+SELECT 
+	* 
+FROM 
+	Sales.InvoiceLines AS IL 
+	LEFT JOIN Sales.Invoices AS I ON IL.InvoiceID = I.InvoiceID
+	LEFT JOIN Sales.Customers AS C ON I.CustomerID = C.CustomerID
+WHERE
+	C.CustomerID IN (525, 831)
+ORDER BY 
+	IL.ExtendedPrice DESC
