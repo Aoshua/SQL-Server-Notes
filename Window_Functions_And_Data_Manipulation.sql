@@ -128,6 +128,8 @@ ORDER BY
     11976	    525	        Wingtip Toys (Claycomo, MO) 	284.63
     61704	    831	        Bhaavan Rai	                    20386.31
 
+	See photo, or rank
+
 */
 SELECT
 	SI.InvoiceID,
@@ -181,12 +183,24 @@ SELECT * FROM Sales.InvoiceLines AS IL ORDER BY IL.ExtendedPrice DESC
 
 -- Part
 SELECT 
-	* 
+	IL.ExtendedPrice
 FROM 
 	Sales.InvoiceLines AS IL 
 	LEFT JOIN Sales.Invoices AS I ON IL.InvoiceID = I.InvoiceID
 	LEFT JOIN Sales.Customers AS C ON I.CustomerID = C.CustomerID
 WHERE
-	C.CustomerID IN (525, 831)
+	C.CustomerID IN (831)
 ORDER BY 
 	IL.ExtendedPrice DESC
+
+-- This gets the top two... but only for 831
+SELECT 
+	TOP 2 I.InvoiceID,
+	I.CustomerID,
+	C.CustomerName,
+	IL.ExtendedPrice
+FROM Sales.InvoiceLines AS IL 
+	LEFT JOIN Sales.Invoices As I ON IL.InvoiceID = I.InvoiceID
+	LEFT JOIN Sales.Customers AS C ON I.CustomerID = C.CustomerID
+WHERE C.CustomerID IN (525, 831)
+ORDER BY IL.ExtendedPrice DESC
