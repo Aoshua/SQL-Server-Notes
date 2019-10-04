@@ -148,11 +148,40 @@ FROM
 			InvoiceID
 		FROM
 			Sales.InvoiceLines AS IL
-	) AS T ON SI.InvoiceID = T.InvoiceID
+	) AS T ON T.InvoiceID = SI.InvoiceID
 WHERE
 	SC.CustomerID IN (525, 831)
+	AND
+	T.Largest IN (1, 2)
+	AND 
+	T.Smallest IN (1, 2)
 GROUP BY
 	SI.InvoiceID,
 	SC.CustomerID,
 	SC.CustomerName
+ORDER BY
+	CustomerName,
+	InvoiceTotal DESC
 
+----------
+
+SELECT
+	SI.InvoiceID,
+	SC.CustomerID,
+	SC.CustomerName,
+	ROW_NUMBER() OVER(PARTITION BY IL.InvoiceID ORDER BY IL.ExtendedPrice DESC) AS Largest,
+	ROW_NUMBER() OVER(PARTITION BY IL.InvoiceID ORDER BY IL.ExtendedPrice ASC) AS Smallest,
+	SUM(SIL.ExtendedPrice) AS [InvoiceTotal]
+FROM
+	Sales.Invoices AS SI
+	LEFT JOIN Sales.InvoiceLines AS SIL ON SI.InvoiceID = SIL.InvoiceID
+	LEFT JOIN Sales.Customers AS SC ON SI.CustomerID = SC.CustomerID
+	
+WHERE
+	SC.CustomerID IN (525, 831)
+	AND 
+	T.Largest IN (1, 2)
+GROUP BY
+	SI.InvoiceID,
+	SC.CustomerID,
+	SC.CustomerName
