@@ -143,18 +143,18 @@ FROM
 	LEFT JOIN
 	(
 		SELECT
-			ROW_NUMBER() OVER(PARTITION BY IL.InvoiceID ORDER BY IL.ExtendedPrice DESC) AS Largest,
-			ROW_NUMBER() OVER(PARTITION BY IL.InvoiceID ORDER BY IL.ExtendedPrice ASC) AS Smallest,
-			InvoiceID
+			ROW_NUMBER() OVER(PARTITION BY IL.InvoiceID ORDER BY IL.ExtendedPrice, IL.InvoiceID DESC) AS Largest,
+			ROW_NUMBER() OVER(PARTITION BY IL.InvoiceID ORDER BY IL.ExtendedPrice, IL.InvoiceID ASC) AS Smallest,
+			IL.InvoiceID
 		FROM
 			Sales.InvoiceLines AS IL
 	) AS T ON T.InvoiceID = SI.InvoiceID
 WHERE
 	SC.CustomerID IN (525, 831)
 	AND
-	T.Largest IN (1, 2)
-	AND 
-	T.Smallest IN (1, 2)
+	(T.Largest IN (1, 2)
+	OR 
+	T.Smallest IN (1, 2))
 GROUP BY
 	SI.InvoiceID,
 	SC.CustomerID,
