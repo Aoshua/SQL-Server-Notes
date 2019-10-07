@@ -131,6 +131,8 @@ ORDER BY
 	See photo, or rank
 
 */
+select * from sales.invoices
+
 SELECT
 	SI.InvoiceID,
 	SC.CustomerID,
@@ -143,11 +145,12 @@ FROM
 	LEFT JOIN
 	(
 		SELECT
-			ROW_NUMBER() OVER(PARTITION BY IL.InvoiceID ORDER BY IL.ExtendedPrice, IL.InvoiceID DESC) AS Largest,
-			ROW_NUMBER() OVER(PARTITION BY IL.InvoiceID ORDER BY IL.ExtendedPrice, IL.InvoiceID ASC) AS Smallest,
+			ROW_NUMBER() OVER(PARTITION BY I.CustomerID ORDER BY IL.ExtendedPrice DESC, IL.InvoiceID) AS Largest,
+			ROW_NUMBER() OVER(PARTITION BY I.CustomerID ORDER BY IL.ExtendedPrice ASC, IL.InvoiceID) AS Smallest,
 			IL.InvoiceID
 		FROM
 			Sales.InvoiceLines AS IL
+			LEFT JOIN Sales.Invoices as I on I.InvoiceID = IL.InvoiceID 
 	) AS T ON T.InvoiceID = SI.InvoiceID
 WHERE
 	SC.CustomerID IN (525, 831)
@@ -162,26 +165,3 @@ GROUP BY
 ORDER BY
 	CustomerName,
 	InvoiceTotal DESC
-
-----------
-
-SELECT
-	SI.InvoiceID,
-	SC.CustomerID,
-	SC.CustomerName,
-	ROW_NUMBER() OVER(PARTITION BY IL.InvoiceID ORDER BY IL.ExtendedPrice DESC) AS Largest,
-	ROW_NUMBER() OVER(PARTITION BY IL.InvoiceID ORDER BY IL.ExtendedPrice ASC) AS Smallest,
-	SUM(SIL.ExtendedPrice) AS [InvoiceTotal]
-FROM
-	Sales.Invoices AS SI
-	LEFT JOIN Sales.InvoiceLines AS SIL ON SI.InvoiceID = SIL.InvoiceID
-	LEFT JOIN Sales.Customers AS SC ON SI.CustomerID = SC.CustomerID
-	
-WHERE
-	SC.CustomerID IN (525, 831)
-	AND 
-	T.Largest IN (1, 2)
-GROUP BY
-	SI.InvoiceID,
-	SC.CustomerID,
-	SC.CustomerName
