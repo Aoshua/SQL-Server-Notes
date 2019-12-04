@@ -14,11 +14,11 @@
 GO
 CREATE VIEW View_Invoices AS
 	SELECT 
-		SUM(IL.ExtendedPrice) AS [TotalExtendedPrice], -- Total of all invoice lines (using extended price),
-		I.InvoiceDate, -- year invoice was created in,
-		I.InvoiceID, -- invoice id,
-		C.CustomerID, -- customer id,
-		C.CustomerName -- customer name
+		SUM(IL.ExtendedPrice) AS [TotalExtendedPrice],
+		I.InvoiceDate,
+		I.InvoiceID,
+		C.CustomerID,
+		C.CustomerName
 	FROM
 		Sales.Invoices I 
 		INNER JOIN Sales.InvoiceLines IL ON I.InvoiceID = IL.InvoiceID
@@ -30,7 +30,7 @@ CREATE VIEW View_Invoices AS
 		C.CustomerName
 GO
 SELECT
-	TOP 3 *
+	TOP 3 * -- Use row number not top. Row number or denserank (row number < 3)
 FROM
 	View_Invoices
 WHERE 
@@ -58,7 +58,16 @@ CREATE TABLE CS3550FinalSpring2019_Table1
 	Active bit DEFAULT(1)
 )
 
+ALTER TABLE CS3550FinalSpring2019_Table1
+ADD CHECK (ItemCost > 0.01 AND ItemCost < 1000000)
 
+INSERT INTO CS3550FinalSpring2019_Table1 
+	(ItemCost, ItemDescription, CreatedOn, UpdatedOn, Active)
+	VALUES (0.2, 'Dark Souls III', NULL, NULL, 1)
+
+INSERT INTO CS3550FinalSpring2019_Table1 
+	(ItemCost, ItemDescription, CreatedOn, UpdatedOn, Active)
+	VALUES (1000000, 'Dark Souls I', NULL, NULL, 0)
 
 /* (10 points)
 	Write a trigger that prevents deletes from the finals table
@@ -72,7 +81,19 @@ CREATE TABLE CS3550FinalSpring2019_Table1
 	your trigger worked, returning all columns and records for the table.
 
 */
+GO
+CREATE OR ALTER TRIGGER InsteadOfDeleteFinal
+ON CS3550FinalSpring2019_Table1
+INSTEAD OF DELETE
+AS
+BEGIN
+	UPDATE CS3550FinalSpring2019_Table1
+	SET Active = 0
+	FROM CS3550FinalSpring2019_Table1 AS O JOIN deleted AS D ON O.MyKey = D.MyKey
+END
 
+delete from CS3550FinalSpring2019_Table1 where MyKey = 5
+select * from CS3550FinalSpring2019_Table1
 
 /*	(10 points)
 	Question #4: Write a trigger that updates the "UpdatedOn" column
@@ -98,7 +119,7 @@ CREATE TABLE CS3550FinalSpring2019_Table1
 	Write a script to call your stored procedure three times - one with a
 		bad price, one with a duplicated description, and one that works.
 		Make sure to capture the error code and print it to the screen.
-
+	ERROR_MESSAGE()
 */
 
 /* 
