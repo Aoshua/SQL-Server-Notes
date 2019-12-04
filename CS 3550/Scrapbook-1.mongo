@@ -1,0 +1,452 @@
+/* Once you create a collection, the database is actually created */
+db.createCollection('People')
+
+/* Insert a single record */
+db.People.insertOne(
+    {
+        employeeKey: '0004086',
+        fullName:'Reed, Russell',
+        title: 'Janitor',
+        salary: null
+    }
+)
+    
+db.People.insertOne(
+    {
+        employeeKey: '00039111',
+        fullName:'Reed, Braxton',
+        title: 'Intern',
+        salary: 15.00
+    }
+)
+
+/* Insert multiple records - use an array of JSON objects */
+/* Created using this SQL String */
+/*
+SELECT 
+	P.PersonID [employeeKey],
+	P.FullName [fullName],
+	JSON_VALUE(P.CustomFields, '$.Title') [title]
+FROM
+	Application.People P
+
+WHERE
+	P.IsEmployee = 1
+
+FOR JSON PATH    
+*/
+    
+    
+db.People.insertMany(
+[
+   {  
+      "employeeKey":2,
+      "fullName":"Kayla Woodcock",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":3,
+      "fullName":"Hudson Onslow",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":4,
+      "fullName":"Isabella Rupp",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":5,
+      "fullName":"Eva Muirden",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":6,
+      "fullName":"Sophia Hinton",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":7,
+      "fullName":"Amy Trefl",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":8,
+      "fullName":"Anthony Grosse",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":9,
+      "fullName":"Alica Fatnowna",
+      "title":"General Manager"
+   },
+   {  
+      "employeeKey":10,
+      "fullName":"Stella Rosenhain",
+      "title":"Warehouse Supervisor"
+   },
+   {  
+      "employeeKey":11,
+      "fullName":"Ethan Onslow",
+      "title":"Warehouse Supervisor"
+   },
+   {  
+      "employeeKey":12,
+      "fullName":"Henry Forlonge",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":13,
+      "fullName":"Hudson Hollinworth",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":14,
+      "fullName":"Lily Code",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":15,
+      "fullName":"Taj Shand",
+      "title":"Manager"
+   },
+   {  
+      "employeeKey":16,
+      "fullName":"Archer Lamble",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":17,
+      "fullName":"Piper Koch",
+      "title":"Manager"
+   },
+   {  
+      "employeeKey":18,
+      "fullName":"Katie Darwin",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":19,
+      "fullName":"Jai Shand",
+      "title":"Team Member"
+   },
+   {  
+      "employeeKey":20,
+      "fullName":"Jack Potter",
+      "title":"General Manager"
+   } 
+]
+)
+
+
+
+/* By default, your collection will not enforce any sort of schema */
+   
+db.People.insertOne(
+    {
+        employeeKey: '0000001',
+        fullName:'Hall, Alan'
+    }
+)
+    
+db.People.insertOne(
+    {
+        employeeKey: '0035196',
+        fullName:'Dover, Benjamin',
+        title: 'Account Executive',
+        favoriteTeams: {
+            'Baseball': 'Red Sox',
+            'Football': 'Patriots',
+            'Basketball': 'Celtics'
+        }
+    }
+)
+
+/* We'll show a way to get some control later in the demo */
+    
+/* Now we have some data, let's pull some out. */
+/* SELECT * FROM PEOPLE*/
+db.People.find({})
+
+/* SELECT * FROM PEOPLE WHERE TITLE = 'Manager' */
+
+db.People.find(
+    {
+    'title': 'Manager'
+    }
+)
+
+/* 
+    SELECT * FROM People WHERE title IN ('Manager', 'Account Executive')
+    When checking the same field, use the $in keyword */    
+db.People.find(
+    {
+        'title': {
+            $in:['Manager', 'Account Executive']
+        }
+    }
+)
+
+/*
+    http://www.rexegg.com/regex-quickstart.html
+    
+*/
+db.People.find(
+    {
+        'title': /.*Sup.*/
+    }
+    
+)
+
+/* look for anything with 're' in the full name.  i to ignore case */    
+db.People.find(
+    {
+        'fullName': /.*re.*/i
+    }
+    
+)
+
+db.People.find(
+    {
+        'employeeKey': {$lt: 4}
+    }
+)
+    
+db.People.find(
+    {
+        'employeeKey': {$gte: 19}
+    }
+)
+
+/* or statement requires an array of search parameters */
+db.People.find(
+    {
+        $or: [{'employeeKey':{$gte: 19}}, {'fullName': 'Reed, Russell'}]
+    }
+)
+
+/* and statement...  */
+    
+db.People.find(
+    {
+        'employeeKey': {$gte: 17},
+        'fullName': 'Katie Darwin'
+    }
+)
+
+/* Doesn't work */
+db.People.find(
+    {
+        'employeeKey': {$gte: 17},
+        'employeeKey': {$lte: 18}
+    }
+)
+
+
+
+
+/* replace with $and - evaluation of same field multiple times */
+db.People.find(
+    {
+        $and:[
+            {'employeeKey': {$gte: 17}},
+            {'employeeKey': {$lte: 18}}
+            ]
+    }
+)
+
+
+db.People.find(
+    {
+        'employeeKey':
+        {
+            $gte: 17,
+            $lte: 18
+        }
+    }
+)
+
+
+
+/* nested fields */
+db.People.find(
+    {
+        'favoriteTeams.Baseball': 'Red Sox'
+    }
+)
+
+
+/* specify the fields you want back */    
+db.People.find(
+    {
+        'title': 'Team Member'
+    }, 
+    {
+        'fullName': 1, '_id': 0
+    }
+)
+
+/* Doesn't work */
+db.People.find(
+    {
+        '_id': "5db8f4c82665942323cfcccc"
+    }
+)
+    
+    
+/* use the ObjectId command to search by the id field */    
+db.People.find(
+    {
+        '_id': ObjectId("5db8f4c82665942323cfcccc")
+    }
+)
+    
+/* Doesn't work */
+db.People.find(
+    {
+        'salary': null
+    }
+)    
+
+db.People.find(
+    {
+        'salary': {$exists: true}
+    }
+)
+    
+
+
+db.People.updateOne(
+    {
+        '_id': ObjectId("5db8f4c82665942323cfcccc")
+    },
+    {
+        $set: {'salary': 8.25}
+    }
+)
+
+db.People.find({'_id': ObjectId("5db8f4c82665942323cfcccc")})
+
+db.People.updateOne(
+    {
+        '_id': ObjectId("5db8f4c82665942323cfcccc")
+    },
+    {
+        $set: {'salary': 8.50},
+        $currentDate: { 'lastModified': true}
+    }
+)    
+ 
+    
+db.People.find({'_id': ObjectId("5db8f4c82665942323cfcccc")})
+
+
+
+/* Date Range check */
+db.People.find(
+    {
+        'lastModified': {
+            $gte: ISODate('2019-10-28T00:00:00.000Z'),
+            $lt: ISODate('2019-10-30T00:00:00.000Z')
+            }
+    }
+)
+    
+db.People.updateMany(
+    {
+        'salary': {$exists: false}
+    },
+    {
+        $set: {'salary': 10.00},
+        $currentDate: { 'lastModified': true}        
+    }
+)
+
+
+    
+db.People.find({})
+
+/* Overwrites rather than creating new */
+db.People.replaceOne(
+    {'_id' : ObjectId("5db8f55f2665942323cfcccd")},
+    {
+        "employeeKey" : 2.0,
+        "fullName" : "Kayla Woodcock",
+        "title" : "Warehouse Supervisor",
+        "salary" : 20.0
+    }            
+)
+
+db.People.find({'_id' : ObjectId("5abbf9c8a0c8bcbc6fb7813a")})
+
+
+db.People.find({'title': 'Warehouse Supervisor'})
+db.People.deleteOne({"_id" : ObjectId("5abbf9c8a0c8bcbc6fb78142")})
+
+
+
+db.People.deleteMany({'title': 'Warehouse Supervisor'})
+
+)
+
+
+
+
+
+
+
+
+db.createCollection('HourLog',
+    {
+        validator: { 
+            'hoursLogged': {$lte: 10.0},
+            'workType': {$in: ['Regular', 'Vacation', 'Sick']}                
+         },
+         validationAction: 'error'
+         
+    }
+)
+    
+db.HourLog.insertOne({'hoursLogged': 8, 'workType': 'Regular'})
+db.HourLog.insertOne({'hoursLogged': 11, 'workType': 'Regular'})
+
+db.HourLog.find({})
+
+
+
+
+
+db.createCollection(
+    'FunkoPop',
+    {
+        validator:
+        {
+            $jsonSchema:
+            {
+                bsonType: 'object',
+                required: ['characterName', 'fandom', 'funkoBrand'],
+                properties: 
+                {
+                    'characterName':
+                    {
+                        bsonType: 'string',
+                        description: 'Name of Funko Pop Figure'
+                    },
+                    'fandom':
+                    {
+                        bsonType: 'string',
+                        description: 'The name of the fandom the Pop figure belongs to'
+                    },
+                    'funkoBrand':
+                    {
+                        bsonType: 'string',
+                        description: 'What product category does this belong to?'                        
+                    }
+                }
+            }
+        },
+        validationLevel: 'error'
+    }
+)
+
+
+db.version()
