@@ -12,7 +12,7 @@
 	that returns the desired results.
 */
 GO
-CREATE VIEW View_Invoices AS
+Alter VIEW View_Invoices AS
 	SELECT 
 		SUM(IL.ExtendedPrice) AS [TotalExtendedPrice],
 		I.InvoiceDate,
@@ -30,13 +30,17 @@ CREATE VIEW View_Invoices AS
 		C.CustomerName
 GO
 SELECT
-	TOP 3 * -- Use row number not top. Row number or denserank (row number < 3)
+	TOP 6 * 
+	--CASE WHEN CustomerID IN (1, 401) THEN Top 6 END 
+	-- Use row number not top. Row number or denserank (row number < 3)
 FROM
 	View_Invoices
 WHERE 
 	CustomerID IN (1, 401)
 	AND
 	InvoiceDate LIKE '%2014%'
+ORDER BY
+	TotalExtendedPrice DESC
 
 
 /*	(10 points)
@@ -92,8 +96,15 @@ BEGIN
 	FROM CS3550FinalSpring2019_Table1 AS O JOIN deleted AS D ON O.MyKey = D.MyKey
 END
 
-delete from CS3550FinalSpring2019_Table1 where MyKey = 5
-select * from CS3550FinalSpring2019_Table1
+INSERT INTO CS3550FinalSpring2019_Table1 
+	(ItemCost, ItemDescription, CreatedOn, UpdatedOn, Active)
+	VALUES (15.45, 'Game1', GETDATE(), GETDATE(), 1),
+			(30.56, 'Game2', GETDATE(), GETDATE(), 1),
+			(59.99, 'Game3', GETDATE(), GETDATE(), 1)
+
+DELETE FROM CS3550FinalSpring2019_Table1 WHERE MyKey IN (1, 2)
+
+SELECT * FROM CS3550FinalSpring2019_Table1
 
 /*	(10 points)
 	Question #4: Write a trigger that updates the "UpdatedOn" column
@@ -106,6 +117,27 @@ select * from CS3550FinalSpring2019_Table1
 	that the create date was updated for each row.  
 
 */
+GO
+CREATE OR ALTER TRIGGER InsteadOfUpdateFinal
+ON CS3550FinalSpring2019_Table1
+INSTEAD OF UPDATE
+AS
+BEGIN
+	UPDATE CS3550FinalSpring2019_Table1
+	SET UpdatedOn = GETDATE()
+	FROM CS3550FinalSpring2019_Table1 AS O JOIN inserted AS U ON O.MyKey = U.MyKey
+END
+
+INSERT INTO CS3550FinalSpring2019_Table1 
+	(ItemCost, ItemDescription)
+	VALUES (15.45, 'Game4'),
+			(30.56, 'Game5')
+
+UPDATE CS3550FinalSpring2019_Table1
+SET  ItemCost = ItemCost + (ItemCost * 0.1)
+WHERE MyKey IN (4, 5)
+
+SELECT * FROM CS3550FinalSpring2019_Table1
 
 /* (15 points)
 	Question #5: Write a stored procedure to add rows to the above
@@ -121,6 +153,32 @@ select * from CS3550FinalSpring2019_Table1
 		Make sure to capture the error code and print it to the screen.
 	ERROR_MESSAGE()
 */
+GO
+CREATE OR ALTER PROCEDURE dbo.ADD_TO_FINALS_TABLE
+	@Item_Cost money,
+	@Item_Description varchar(255)
+	--Only these values because the rest have reasonable defaults
+AS
+BEGIN
+	IF ( SELECT COUNT(*) FROM CS3550FinalSpring2019_Table1 WHERE ItemDescription = @Item_Description ) = 0
+		BEGIN TRY
+			INSERT CS3550FinalSpring2019_Table1 (ItemCost, ItemDescription)
+			VALUES (@Item_Cost, @Item_Description)
+		END TRY
+		BEGIN CATCH
+			PRINT 'An error occured while inserting the values.'
+			--RETURN -1
+		END CATCH			
+	ELSE
+		BEGIN
+			PRINT 'There is already an item with this description.'
+			--RETURN -2
+		END
+END
+
+EXEC ADD_TO_FINALS_TABLE 10000000, 'AnotherTitle'
+EXEC ADD_TO_FINALS_TABLE 56.50, 'Game4'
+EXEC ADD_TO_FINALS_TABLE 14.50, 'SillyGameTitle'
 
 /* 
 	(10 points)
@@ -136,13 +194,25 @@ select * from CS3550FinalSpring2019_Table1
 	that returns invoices for Utah customers.
 */
 
+GO
+CREATE OR ALTER FUNCTION After_Tax_Final(
+	@dolarAmount money,
+	@taxRate decimal(10, 5) -- Takes sales tax in form 7.25 NOT 0.0725
+) RETURNS money
+AS
+BEGIN
+	RETURN @dolarAmount + (@dolarAmount * (@taxRate / 100.0))
+END
+GO
+
 SELECT
-	*
+	C.CustomerID,
+	ROUND(dbo.After_Tax_Final (TotalExtendedPrice, 7.25), 2) -- Round to 2 decimal places for money
 FROM 
           Sales.Customers C
           INNER JOIN Application.Cities CI ON C.PostalCityID = CI.CityID
           INNER JOIN Application.StateProvinces SP ON SP.StateProvinceID = CI.StateProvinceID
-
+		  INNER JOIN View_Invoices AS V ON V.CustomerID = C.CustomerID
 WHERE
           SP.StateProvinceCode = 'UT'
 
@@ -159,6 +229,23 @@ WHERE
 	1,505,240.75 of sales in 2014.
 */
 
+SELECT
+	C.ColorName,
+	ISNULL(SUM(CASE WHEN I.InvoiceDate LIKE '%2013%' THEN IL.ExtendedPrice END), 0) AS [2013 Sales],
+	ISNULL(SUM(CASE WHEN I.InvoiceDate LIKE '%2014%' THEN IL.ExtendedPrice END), 0) AS [2014 Sales],
+	ISNULL(SUM(CASE WHEN I.InvoiceDate LIKE '%2015%' THEN IL.ExtendedPrice END), 0) AS [2015 Sales],
+	ISNULL(SUM(CASE WHEN I.InvoiceDate LIKE '%2016%' THEN IL.ExtendedPrice END), 0) AS [2016 Sales],
+	ISNULL(SUM(IL.ExtendedPrice), 0) AS [Total Sales]
+FROM
+	Warehouse.Colors AS C
+	LEFT JOIN Warehouse.StockItems AS SI ON SI.ColorID = C.ColorID
+	LEFT JOIN Sales.InvoiceLines AS IL ON IL.StockItemID = SI.StockItemID
+	LEFT JOIN Sales.Invoices AS I ON I.InvoiceID = IL.InvoiceID
+GROUP BY
+	C.ColorName
+ORDER BY 
+	[Total Sales] DESC
+
 /*	(10 points)
 	Question #8: Create a view that returns all employees from the Application.People
 	table (isEmployee = 1).  Make sure your view does the following:
@@ -172,6 +259,26 @@ WHERE
 			divided by 365.0 (you should get a decimal value that represents years)
 		- Include their email address, preferred name, personId also.
 */
+SELECT 
+	SUBSTRING(FullName, CHARINDEX(' ', FullName) + 1, LEN(FullName) - CHARINDEX(' ', FullName)) AS [Last Name],
+	SUBSTRING(FullName, 1, CHARINDEX(' ', FullName) - 1) AS [First Name],
+	SUBSTRING(LogonName, 1, CHARINDEX('@', LogonName) - 1) AS [Logon Name],
+	JSON_VALUE(CustomFields, '$.Title') AS [Title],
+	-- I'm using the built-in JSON stuff, but using string parsing to get only the date
+	SUBSTRING(JSON_VALUE(CustomFields, '$.HireDate'), 1, CHARINDEX('T', JSON_VALUE(CustomFields, '$.HireDate')) - 1) AS [Hire Date],
+	DATEDIFF(day, 
+		SUBSTRING(JSON_VALUE(CustomFields, '$.HireDate'), 1, CHARINDEX('T', JSON_VALUE(CustomFields, '$.HireDate')) - 1)
+		, GETDATE()) / 365.0 AS [Tenture],
+	EmailAddress,
+	PreferredName,
+	PersonID
+FROM 
+	Application.People
+WHERE
+	IsEmployee = 1
+
+SELECT * FROM Application.People WHERE IsEmployee = 1
+
 
 /* (25 points)
 	Question #9: Write T-SQL that simulates the typical random drop rates of 
@@ -195,5 +302,26 @@ WHERE
 	 with the script for credit.
 
 */
-
 DECLARE @DropResults TABLE (RollNumber int, RolledValue int, ItemType varchar(20))
+
+DECLARE @Loop_Counter int = 1
+DECLARE @RollValue int
+DECLARE @Rarity varchar(20)
+WHILE @Loop_Counter < 1000
+BEGIN
+	SET @RollValue = ABS(CHECKSUM(NEWID()) % 1000) + 1
+	IF @RollValue > 0 AND @RollValue < 916
+		SET @Rarity = 'Common'
+	ELSE IF @RollValue >= 916 AND @RollValue < 996
+		SET @Rarity = 'Rare'
+	ELSE
+		SET @Rarity = 'Epic'
+
+	INSERT INTO @DropResults (RollNumber, RolledValue, ItemType)
+	VALUES (@Loop_Counter, @RollValue, @Rarity)
+
+	SET @Loop_Counter = @Loop_Counter + 1
+END
+PRINT ABS(CHECKSUM(NEWID()) % 1000) + 1
+
+SELECT * FROM @DropResults
