@@ -11,6 +11,21 @@
 	You will need to submit the script to generate your view, then a second query
 	that returns the desired results.
 */
+SELECT * 
+FROM
+(
+SELECT
+C.CityName,
+SP.StateProvinceCode,
+ROW_NUMBER() OVER (PARTITION BY SP.StateProvinceCode ORDER BY C.CityName DESC) AS [RowNumber]
+FROM
+Application.Cities AS C
+INNER JOIN Application.StateProvinces SP ON C.StateProvinceID = SP.StateProvinceID
+WHERE SP.StateProvinceCode IN ('UT', 'WA')
+) AS X
+WHERE X.RowNumber IN (1, 2)
+
+
 GO
 Alter VIEW View_Invoices AS
 	SELECT 
@@ -29,18 +44,30 @@ Alter VIEW View_Invoices AS
 		C.CustomerID,
 		C.CustomerName
 GO
-SELECT
-	TOP 6 * 
-	--CASE WHEN CustomerID IN (1, 401) THEN Top 6 END 
-	-- Use row number not top. Row number or denserank (row number < 3)
+SELECT 
+	*
 FROM
-	View_Invoices
-WHERE 
-	CustomerID IN (1, 401)
-	AND
-	InvoiceDate LIKE '%2014%'
-ORDER BY
-	TotalExtendedPrice DESC
+(
+	SELECT
+		TOP 6
+		[TotalExtendedPrice],
+		InvoiceDate,
+		InvoiceID,
+		CustomerID,
+		CustomerName,
+		ROW_NUMBER() OVER (PARTITION BY CustomerID ORDER BY CustomerID) AS [RowNumber]
+	FROM
+		View_Invoices
+	WHERE 
+		CustomerID IN (1, 401)
+		AND
+		InvoiceDate LIKE '%2014%'
+	ORDER BY
+		TotalExtendedPrice DESC
+) AS T
+--WHERE
+	--T.RowNumber < 4
+
 
 
 /*	(10 points)
@@ -51,7 +78,7 @@ ORDER BY
 	range, one that does not.  
 
 */
-
+--DROP TABLE CS3550FinalSpring2019_Table1
 CREATE TABLE CS3550FinalSpring2019_Table1
 (
 	MyKey int IDENTITY(1,1) NOT NULL PRIMARY KEY,
@@ -153,10 +180,11 @@ SELECT * FROM CS3550FinalSpring2019_Table1
 		Make sure to capture the error code and print it to the screen.
 	ERROR_MESSAGE()
 */
-GO
+GO -- output variable return = set output
 CREATE OR ALTER PROCEDURE dbo.ADD_TO_FINALS_TABLE
 	@Item_Cost money,
-	@Item_Description varchar(255)
+	@Item_Description varchar(255),
+	@Code int OUTPUT 
 	--Only these values because the rest have reasonable defaults
 AS
 BEGIN
@@ -167,18 +195,20 @@ BEGIN
 		END TRY
 		BEGIN CATCH
 			PRINT 'An error occured while inserting the values.'
-			--RETURN -1
+			SET @Code = -1 --RETURN -1
 		END CATCH			
 	ELSE
 		BEGIN
 			PRINT 'There is already an item with this description.'
-			--RETURN -2
+			SET @Code = -2 --RETURN -2
 		END
+	PRINT @Code
 END
 
-EXEC ADD_TO_FINALS_TABLE 10000000, 'AnotherTitle'
-EXEC ADD_TO_FINALS_TABLE 56.50, 'Game4'
-EXEC ADD_TO_FINALS_TABLE 14.50, 'SillyGameTitle'
+DECLARE @InputCode int = 0
+EXEC ADD_TO_FINALS_TABLE 10000000, 'AnotherTitle', @InputCode
+EXEC ADD_TO_FINALS_TABLE 56.50, 'Game4', @InputCode
+EXEC ADD_TO_FINALS_TABLE 14.50, 'YetAnotherGame', @InputCode
 
 /* 
 	(10 points)
@@ -264,11 +294,10 @@ SELECT
 	SUBSTRING(FullName, 1, CHARINDEX(' ', FullName) - 1) AS [First Name],
 	SUBSTRING(LogonName, 1, CHARINDEX('@', LogonName) - 1) AS [Logon Name],
 	JSON_VALUE(CustomFields, '$.Title') AS [Title],
-	-- I'm using the built-in JSON stuff, but using string parsing to get only the date
-	SUBSTRING(JSON_VALUE(CustomFields, '$.HireDate'), 1, CHARINDEX('T', JSON_VALUE(CustomFields, '$.HireDate')) - 1) AS [Hire Date],
-	DATEDIFF(day, 
-		SUBSTRING(JSON_VALUE(CustomFields, '$.HireDate'), 1, CHARINDEX('T', JSON_VALUE(CustomFields, '$.HireDate')) - 1)
-		, GETDATE()) / 365.0 AS [Tenture],
+	CONVERT(datetime2, JSON_VALUE(CustomFields, '$.HireDate')) AS HireDate,
+	 DATEDIFF(day, 
+	 	CONVERT(datetime2, JSON_VALUE(CustomFields, '$.HireDate'))
+	 	, GETDATE()) / 365.0 AS [Tenture],
 	EmailAddress,
 	PreferredName,
 	PersonID
