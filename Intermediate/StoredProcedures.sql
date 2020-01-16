@@ -1,3 +1,7 @@
+/* ---------------------
+	STORED PROCEDURES:
+*/ ---------------------
+
 DROP TABLE ExampleEmployees
 CREATE TABLE ExampleEmployees
 (
@@ -7,8 +11,7 @@ CREATE TABLE ExampleEmployees
 	BirthDate date NULL
 );
 
-
-
+-------
 
 CREATE OR ALTER PROCEDURE InsertEmployee
 	@LastName varchar(50),
@@ -38,8 +41,7 @@ END;
 
 EXEC InsertEmployee 'Reed', 'Russell', '11/5/1975'
 
-
-
+-------
 
 CREATE OR ALTER PROCEDURE InsertEmployee
 	@LastName varchar(50),
@@ -65,11 +67,7 @@ PRINT @MyOutput
 
 SELECT * FROM ExampleEmployees
 
-
-
-
-
-
+-------
 
 /* A smarter insert */
 CREATE OR ALTER PROCEDURE InsertEmployee
@@ -122,7 +120,7 @@ ELSE
 		PRINT CONCAT('Employee inserted successfully.  Key value returned', @MyOutput)
 	END
 
-
+-------
 
 ALTER PROCEDURE OutPutTest1
 	@SomeValue int,
@@ -183,8 +181,8 @@ BEGIN TRANSACTION
 DECLARE @NewDepartmentKey int
 EXEC NewDepartment 'Finance', '1', @departmentKey = @NewDepartmentKey OUTPUT
 SELECT @NewDepartmentKey
-	
 
+-------
 
 ROLLBACK
 
@@ -208,6 +206,3 @@ BEGIN
 END
 
 SELECT * FROM rreed_departments
-
-
-

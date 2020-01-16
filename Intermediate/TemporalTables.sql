@@ -1,14 +1,10 @@
-/* Temporal Tables */
+/* ---------------------------------
+	TEMPORAL TABLES:
+*/ ---------------------------------
 
-
-
+-- Helpful reference:
 https://en.wikipedia.org/wiki/Slowly_changing_dimension
-
-
-
-
-
-
+https://docs.microsoft.com/en-us/sql/relational-databases/tables/temporal-tables?view=sql-server-ver15
 
 
 CREATE TABLE dbo.EmployeeExamples(
@@ -24,13 +20,7 @@ CREATE TABLE dbo.EmployeeExamples(
 
 DROP TABLE EmployeeExamples  --Won't work.  
 
-
-
-
-
-
-
-
+-------
 
 ALTER TABLE [dbo].EmployeeExamples SET ( SYSTEM_VERSIONING = OFF )
 GO
@@ -43,15 +33,11 @@ VALUES
 	('Josh Lopez', 10000, 'Talent Solutions'),
 	('Eric Barnes', 10000, 'Information Technology')
 
-
-
-
+-------
 
 SELECT * FROM EmployeeExamples
 
-
-
-
+-------
 
 SELECT 
 	*,
@@ -61,18 +47,14 @@ SELECT
 FROM
 	EmployeeExamples
 
-
-
-
+-------
 
 UPDATE EmployeeExamples SET SALARY = 7200 WHERE fullname = 'Russ Reed'
 
 
 SELECT * FROM EmployeeExamples
 
-
-
-
+-------
 
 SELECT 
 	*,
@@ -86,15 +68,11 @@ ORDER BY
 	FullName,
 	SysEndTime
 
-
-
-
+-------
 
 UPDATE EmployeeExamples SET Department = 'Facilities' WHERE fullname = 'Russ Reed'
 
-
-
-
+-------
 
 SELECT 
 	*,
@@ -108,9 +86,7 @@ ORDER BY
 	FullName,
 	SysEndTime
 
-
-
-
+-------
 
 SELECT 
 	*,
@@ -124,9 +100,7 @@ ORDER BY
 	FullName,
 	SysEndTime
 
-
-
-
+-------
 
 SELECT 
 	*,
@@ -139,9 +113,3 @@ FROM EmployeeExamples
 ORDER BY
 	FullName,
 	SysEndTime
-
-
-
-
-
-https://docs.microsoft.com/en-us/sql/relational-databases/tables/temporal-tables?view=sql-server-ver15

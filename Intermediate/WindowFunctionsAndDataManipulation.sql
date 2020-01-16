@@ -1,24 +1,22 @@
-/* Query #1 (15 points):
+/* 
+	Write the necessary INSERT statements to add the Best Buy locations in Nebraska 
+		and Alaska.  These can be found at https://stores.bestbuy.com/.
 
-Write the necessary INSERT statements to add the Best Buy locations in Nebraska 
-	and Alaska.  These can be found at https://stores.bestbuy.com/.
+	The store in Papillion, NE is closing.  Write a delete statement to remove this 
+		location from the database (completely ignoring our conversation about why 
+		this is so bad to do).
 
-The store in Papillion, NE is closing.  Write a delete statement to remove this 
-	location from the database (completely ignoring our conversation about why 
-	this is so bad to do).
+	The store in Lincoln, NE has moved locations.  Write an update statement that
+		changes its address to:
+		42 Balcome
+		West Sussex, NE 68511
 
-The store in Lincoln, NE has moved locations.  Write an update statement that
-	changes its address to:
-	42 Balcome
-	West Sussex, NE 68511
+	A new store has opened up in Worcester, MA.  Write an insert statement to add 
+		the store (use the address from the site).
 
-A new store has opened up in Worcester, MA.  Write an insert statement to add 
-	the store (use the address from the site).
-
-Script to create the table included below.
+	Script to create the table included below.
 
 */
-
 CREATE SCHEMA [Homework];
 
 CREATE TABLE [Homework].Locations
@@ -59,22 +57,19 @@ WHERE
 INSERT INTO [Homework].Locations (LocationName, Address1, Address2, City, StateCode, ZipCode, Zip4)
 	VALUES ('Best Buy Worcester', '7 Neponset St', NULL, 'Worcester', 'MA', 01606, NULL)
 
-/* Question #2 (15 points):
 
-You’ve been asked to send thank you gifts to customers who have purchased large quantities of your recently 
-released chocolate animal series (stock item id’s 222, 223, 224, 225).  Your query 
-needs to list the customer ID, the customer Name, have a column that totals units of each animal type, 
-and a grand total for all animals.  To qualify for the gift, the customer must have purchased at least 300 
-of any given animal type, or a total of 500 across all animal types.  Your final query should sort by
-the total – largest to smallest.  You should get 20 rows – the first two look like this – 
+/* 
+	You’ve been asked to send thank you gifts to customers who have purchased large quantities of your recently 
+	released chocolate animal series (stock item id’s 222, 223, 224, 225).  Your query 
+	needs to list the customer ID, the customer Name, have a column that totals units of each animal type, 
+	and a grand total for all animals.  To qualify for the gift, the customer must have purchased at least 300 
+	of any given animal type, or a total of 500 across all animal types.  Your final query should sort by
+	the total – largest to smallest.  You should get 20 rows – the first two look like this – 
 
-CustomerID	CustomerName					Beetles	Echidnas	Frogs	Sharks	Total
-441			Wingtip Toys (Keosauqua, IA)	216		432			0		96		744
-573			Wingtip Toys (Marin City, CA)	264		0			312		168		744
+	CustomerID	CustomerName					Beetles	Echidnas	Frogs	Sharks	Total
+	441			Wingtip Toys (Keosauqua, IA)	216		432			0		96		744
+	573			Wingtip Toys (Marin City, CA)	264		0			312		168		744
 */
---sum quanities per customer in a derived table
--- sum case? alternative
-
 SELECT 
 	SC.CustomerID,
 	SC.CustomerName,
@@ -104,8 +99,8 @@ HAVING
 ORDER BY
 	Total DESC
 
-/* Query #3 - 20 points
 
+/* 
     Write a query that does the following:
     
     - filter down to customer's 525 and 831
@@ -129,10 +124,7 @@ ORDER BY
     61704	    831	        Bhaavan Rai	                    20386.31
 
 	See photo, or rank
-
 */
-select * from sales.invoices
-
 SELECT
 	SI.InvoiceID,
 	SC.CustomerID,

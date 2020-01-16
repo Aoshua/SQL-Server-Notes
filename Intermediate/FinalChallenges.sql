@@ -1,4 +1,4 @@
-/* (15 points)
+/*
 	Question #1: Create a view that generates one record per invoice.  Each
 	line should have a total of all invoice lines (using extended price),
 	the year that the invoice was created in, the invoice id, the customer id
@@ -65,12 +65,8 @@ FROM
 	ORDER BY
 		TotalExtendedPrice DESC
 ) AS T
---WHERE
-	--T.RowNumber < 4
 
-
-
-/*	(10 points)
+/*
 	Question #2: Write a check constraint for the table defined below that
 	restricts ItemCost to be some value between $0.01 and $999,999.99.
 
@@ -78,7 +74,6 @@ FROM
 	range, one that does not.  
 
 */
---DROP TABLE CS3550FinalSpring2019_Table1
 CREATE TABLE CS3550FinalSpring2019_Table1
 (
 	MyKey int IDENTITY(1,1) NOT NULL PRIMARY KEY,
@@ -100,7 +95,7 @@ INSERT INTO CS3550FinalSpring2019_Table1
 	(ItemCost, ItemDescription, CreatedOn, UpdatedOn, Active)
 	VALUES (1000000, 'Dark Souls I', NULL, NULL, 0)
 
-/* (10 points)
+/* 
 	Write a trigger that prevents deletes from the finals table
 		as defined above.
 	Your trigger should instead update the active bit to 0.  Make sure your
@@ -133,7 +128,7 @@ DELETE FROM CS3550FinalSpring2019_Table1 WHERE MyKey IN (1, 2)
 
 SELECT * FROM CS3550FinalSpring2019_Table1
 
-/*	(10 points)
+/*	
 	Question #4: Write a trigger that updates the "UpdatedOn" column
 	after someone updates any value in the above finals table.  Again,
 	make sure your trigger will handle updates to multiple records...
@@ -166,7 +161,7 @@ WHERE MyKey IN (4, 5)
 
 SELECT * FROM CS3550FinalSpring2019_Table1
 
-/* (15 points)
+/* 
 	Question #5: Write a stored procedure to add rows to the above
 	finals table.  Rules you need to consider - 
 	- Verify that an item with the same name is not already in the table.
@@ -211,7 +206,6 @@ EXEC ADD_TO_FINALS_TABLE 56.50, 'Game4', @InputCode
 EXEC ADD_TO_FINALS_TABLE 14.50, 'YetAnotherGame', @InputCode
 
 /* 
-	(10 points)
 	Question #6: Write a function that takes a dollar amount and a tax rate as inputs
 	and returns the price with tax applied to it.
 
@@ -247,7 +241,7 @@ WHERE
           SP.StateProvinceCode = 'UT'
 
 
-/* (15 points)
+/* 
 	Question #7: Write a query that returns yearly sales (2013, 2014, 2015, 2016) and
 	a total for all years for each Color in the Warehouse.Colors table.  
 	You'll use the Sales.Invoices, Sales.InvoiceLines, Warehouse.StockItems, 
@@ -276,7 +270,7 @@ GROUP BY
 ORDER BY 
 	[Total Sales] DESC
 
-/*	(10 points)
+/*
 	Question #8: Create a view that returns all employees from the Application.People
 	table (isEmployee = 1).  Make sure your view does the following:
 		- Return a last name and first name column, leveraging the full name
@@ -309,7 +303,7 @@ WHERE
 SELECT * FROM Application.People WHERE IsEmployee = 1
 
 
-/* (25 points)
+/* 
 	Question #9: Write T-SQL that simulates the typical random drop rates of 
 	rare items in games.  First, you'll need to understand how to generate a random
 	number - a good stackoverflow post - 

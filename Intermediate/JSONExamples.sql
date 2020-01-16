@@ -1,19 +1,9 @@
-/* JSON - JavaScript Object Notation */
+/* ------------------------------------
+	JSON - JAVASCRIPT OBJECT NOTATION:
+*/ ------------------------------------
 
-/* 
-	A better option than XML.
-	Let's look at examples.
-
-*/
-
-
-
-/* SQL Server has a few built in functions to output or parse
-	JSON 
-*/
-
-
-
+-- A better option than XML.
+-- SQL Server has a few built in functions to output or parse JSON 
 
 SELECT TOP 10
 	O.OrderID [OrderKey],
@@ -27,9 +17,7 @@ FROM
 FOR JSON PATH
 --FOR JSON AUTO
 
-
-
-
+-------
 
 SELECT TOP 5
 	C.CustomerID [Customer.CustomerKey],
@@ -50,6 +38,7 @@ FROM
 
 FOR JSON PATH
 
+-------
 
 SELECT TOP 5
 	C.CustomerID ,
@@ -69,27 +58,14 @@ FROM
 
 FOR JSON AUTO
 
-
-
-
-
-
-
-
-
+-------
 
 SELECT
 	*
 FROM
 	Application.People AS P
 
-
-
-
-
-
-
-
+-------
 
 SELECT
 	P.CustomFields,
@@ -106,15 +82,10 @@ FROM
 WHERE
 	P.IsEmployee = 1
 
+-------
 
-
-
-
-
-
-
-
-/* CROSS APPLY - takes a table result - from a function or
+/* 
+	CROSS APPLY - takes a table result - from a function or
 	anything that creates a table and applies it to each
 	row of the previous table
 */
@@ -125,17 +96,13 @@ FROM
 	CROSS APPLY
 	(
 		SELECT
-			NEWID() [GUID]  --system function to create GUID
+			NEWID() [GUID]  -- system function to create GUID
 	) X
 
 WHERE
 	P.IsEmployee = 1
 
-
-
-
-
-
+-------
 
 	/* simple OPENJSON call - pulls out the JSON array
 	into default key/value columns  */
@@ -154,6 +121,8 @@ WHERE
 /* OPENJSON with WITH statement - gives you more control
  on how the data is pulled from your JSON string
  */
+
+ -------
 
 SELECT
 	P.PersonID, 
